@@ -1,8 +1,3 @@
-
----
-
-### 📄 **2. `SKILL.md`**
-```markdown
 # L402 Ecosystem Builder
 
 **Description:** Learn to build and monetize L402 services from someone who actually did it.
