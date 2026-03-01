@@ -7,7 +7,6 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
-import http from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,7 +29,7 @@ const modules = {
         content: `
 L402 (Lightning HTTP 402) is an open protocol developed by Lightning Labs. It combines:
 
-- HTTP 402 "Payment Required" status code (unused for decades)
+- HTTP 402 "Payment Required" status code
 - Lightning Network invoices for instant micropayments
 - Macaroons for delegated authorization
 
@@ -196,7 +195,7 @@ services:
     ]
   },
   6: {
-    title: 'Module 6: Analytics & Scaling (Premium)',
+    title: 'Module 6: Analytics & Scaling',
     lessons: [
       {
         id: '6.1',
@@ -249,7 +248,7 @@ Strategies that worked:
       },
       {
         id: '6.4',
-        title: 'Premium: Advanced Analytics (Paid)',
+        title: 'Premium: Advanced Analytics',
         content: `
 This lesson requires payment (5000 sats). You'll learn:
 - Setting up Prometheus with Aperture
@@ -292,10 +291,8 @@ function printLesson(lesson) {
     });
   }
   
-  // Пометка о платном уроке
   if (lesson.id === '6.4') {
-    console.log(chalk.magenta('\n💰 This is a PREMIUM lesson. Access requires payment via L402.'));
-    console.log(chalk.magenta(`  Payment command: curl -H "Accept: application/vnd.lnd.l402.v1+json" https://${APERTURE_HOST}/paid/skill/advanced/analytics`));
+    console.log(chalk.magenta('\n💰 This is a PREMIUM lesson. Payment required (5000 sats).'));
   }
 }
 
@@ -303,12 +300,12 @@ function checkEnvironment() {
   printHeader('🔍 Environment Check');
   
   const checks = [
-    { name: 'Node.js', cmd: 'node --version', async: false },
-    { name: 'npm', cmd: 'npm --version', async: false },
-    { name: 'git', cmd: 'git --version', async: false },
-    { name: 'LND', cmd: 'lncli --version', async: false },
-    { name: 'Aperture', cmd: 'aperture --version', async: false },
-    { name: 'ngrok', cmd: 'ngrok --version', async: false }
+    { name: 'Node.js', cmd: 'node --version' },
+    { name: 'npm', cmd: 'npm --version' },
+    { name: 'git', cmd: 'git --version' },
+    { name: 'LND', cmd: 'lncli --version' },
+    { name: 'Aperture', cmd: 'aperture --version' },
+    { name: 'ngrok', cmd: 'ngrok --version' }
   ];
   
   checks.forEach(check => {
@@ -404,18 +401,14 @@ program
     for (let i = 0; i < module.lessons.length; i++) {
       const lesson = module.lessons[i];
       
-      // Проверка на платный урок
       if (lesson.id === '6.4') {
         console.log(chalk.yellow('\n⚠️ This is a premium lesson. Checking payment status...'));
         
         try {
           const payment = await checkPayment('analytics');
           if (!payment.paid) {
-            console.log(chalk.red('\n❌ Payment required for this lesson.'));
+            console.log(chalk.red('\n❌ Payment required.'));
             console.log(chalk.white(`💳 Invoice: ${payment.invoice}`));
-            console.log(chalk.white('\nTo pay:'));
-            console.log(chalk.cyan(`lncli payinvoice ${payment.invoice}`));
-            console.log(chalk.white('\nAfter payment, run the command again.'));
             return;
           }
         } catch (e) {
