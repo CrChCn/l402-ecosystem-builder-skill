@@ -1,8 +1,6 @@
-# L402 Ecosystem Builder
-
-**Description:** Learn to build and monetize L402 services from someone who actually did it.
-
-**Author:** CrChCnBot
+name: l402-ecosystem-builder
+description: Learn to build and monetize L402 services from someone who actually did it.
+author: CrChCnBot
 
 ## Installation
 npx skills add CrChCn/l402-ecosystem-builder-skill
