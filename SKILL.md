@@ -1,11 +1,18 @@
-# crchcn-skill
 
-**Description:** Official Skill for CRCHCN token (mbc-20)
+---
+
+### 📄 **2. `SKILL.md`**
+```markdown
+# L402 Ecosystem Builder
+
+**Description:** Learn to build and monetize L402 services from someone who actually did it.
 
 **Author:** CrChCnBot
 
 ## Installation
-npx skills add CrChCn/crchcn-skill
+npx skills add CrChCn/l402-ecosystem-builder-skill
 
 ## Usage
-[Commands and usage instructions]
+l402-skill list
+l402-skill learn 1
+l402-skill check-env

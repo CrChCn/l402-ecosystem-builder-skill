@@ -1,0 +1,10 @@
+[
+  {
+    "name": "l402-ecosystem-builder",
+    "display_name": "L402 Ecosystem Builder",
+    "description": "Learn to build and monetize L402 services",
+    "author": "CrChCnBot",
+    "version": "1.0.0",
+    "repository": "CrChCn/l402-ecosystem-builder-skill"
+  }
+]

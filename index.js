@@ -3,22 +3,16 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import inquirer from 'inquirer';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 import https from 'https';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const program = new Command();
 
-// ==================== КОНФИГУРАЦИЯ ДЛЯ ПЛАТНЫХ УРОКОВ ====================
+// ==================== КОНФИГУРАЦИЯ ====================
 const APERTURE_HOST = 'deacon-importunate-aubri.ngrok-free.dev';
 const APERTURE_PORT = 443;
-const APERTURE_PATH = '/paid/skill/';
 
-// ==================== КОНТЕНТ МОДУЛЕЙ ====================
+// ==================== МОДУЛИ ====================
 const modules = {
   1: {
     title: 'Module 1: L402 Fundamentals',
@@ -33,8 +27,7 @@ L402 (Lightning HTTP 402) is an open protocol developed by Lightning Labs. It co
 - Lightning Network invoices for instant micropayments
 - Macaroons for delegated authorization
 
-The result: a standard for machine-to-machine payments where agents can pay per request without signup, API keys, or identity.
-        `,
+The result: a standard for machine-to-machine payments where agents can pay per request without signup, API keys, or identity.`,
         commands: [],
         links: ['https://docs.lightning.engineering/lightning-network-tools/l402']
       },
@@ -48,8 +41,7 @@ Agents need:
 - Micropayments (down to 1 satoshi ≈ $0.0006)
 - No KYC, no bureaucracy
 
-Lightning Network provides all this. L402 wraps it in HTTP.
-        `,
+Lightning Network provides all this. L402 wraps it in HTTP.`,
         commands: [],
         links: []
       }
@@ -73,8 +65,7 @@ Add to PATH:
 export PATH=$PATH:$HOME/go/bin
 
 Create wallet:
-lncli create
-        `,
+lncli create`,
         commands: [
           'git clone https://github.com/lightningnetwork/lnd',
           'cd lnd',
@@ -95,14 +86,83 @@ Unlock wallet:
 lncli unlock
 
 Check sync:
-lncli getinfo | grep synced_to_chain
-        `,
+lncli getinfo | grep synced_to_chain`,
         commands: [
           'lnd --bitcoin.active --bitcoin.mainnet --bitcoin.node=neutrino --feeurl=https://mempool.space/api/v1/fees/recommended',
           'lncli unlock',
           'lncli getinfo | grep synced_to_chain'
         ],
         links: []
+      },
+      {
+        id: '2.3',
+        title: 'Installing Aperture',
+        content: `
+git clone https://github.com/lightninglabs/aperture.git
+cd aperture
+make install
+
+Create config directory:
+mkdir -p ~/.aperture`,
+        commands: [
+          'git clone https://github.com/lightninglabs/aperture.git',
+          'cd aperture',
+          'make install',
+          'mkdir -p ~/.aperture'
+        ],
+        links: ['https://github.com/lightninglabs/aperture']
+      },
+      {
+        id: '2.4',
+        title: 'Aperture Configuration',
+        content: `
+Create ~/.aperture/aperture-working.yaml:
+
+listenaddr: "0.0.0.0:8443"
+debuglevel: "debug"
+
+authenticator:
+  network: "mainnet"
+  lndhost: "localhost:10009"
+  tlspath: "/Users/YOUR_USER/Library/Application Support/Lnd/tls.cert"
+  macdir: "/Users/YOUR_USER/Library/Application Support/Lnd/data/chain/bitcoin/mainnet"
+
+dbbackend: "sqlite"
+sqlite:
+  dbfile: "/Users/YOUR_USER/.aperture/aperture.db"
+
+insecure: true
+
+services:
+  - name: "example"
+    hostregexp: ".*"
+    pathregexp: "^/paid/.*$"
+    address: "127.0.0.1:8080"
+    protocol: "http"
+    price: 100
+    timeout: 3600`,
+        commands: [
+          'nano ~/.aperture/aperture-working.yaml'
+        ],
+        links: []
+      },
+      {
+        id: '2.5',
+        title: 'Public Access with Ngrok',
+        content: `
+Install ngrok:
+brew install ngrok
+
+Run tunnel:
+ngrok http 8443
+
+You'll get a public URL like:
+https://your-name.ngrok-free.dev`,
+        commands: [
+          'brew install ngrok',
+          'ngrok http 8443'
+        ],
+        links: ['https://ngrok.com']
       }
     ]
   },
@@ -111,31 +171,23 @@ lncli getinfo | grep synced_to_chain
     lessons: [
       {
         id: '3.1',
-        title: 'CryptoAI Pro (Python)',
+        title: 'Simple Python Server',
         content: `
-Simple Python server that returns predictions:
+Create server.py:
 
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import json
-import time
 
-class CryptoAIHandler(BaseHTTPRequestHandler):
+class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/paid/BTC':
-            self.send_response(200)
-            self.send_header('Content-type', 'application/json')
-            self.end_headers()
-            data = {
-                "asset": "BTC",
-                "prediction": "BULLISH",
-                "confidence": 92,
-                "price": 85432
-            }
-            self.wfile.write(json.dumps(data).encode())
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        data = {"status": "ok", "message": "Hello from L402!"}
+        self.wfile.write(json.dumps(data).encode())
 
-server = HTTPServer(('localhost', 8081), CryptoAIHandler)
-server.serve_forever()
-        `,
+server = HTTPServer(('localhost', 8081), Handler)
+server.serve_forever()`,
         commands: [
           'python3 server.py'
         ],
@@ -157,11 +209,8 @@ curl -X POST "https://moltbook.com/api/v1/posts" \\
   -d '{"submolt":"aitools","title":"My API","content":"..."}'
 
 Each post needs verification. Solve math problems with numbers in words.
-Example: "twenty five + fourteen" = 39.00
-        `,
-        commands: [
-          'curl -X POST "https://moltbook.com/api/v1/posts" -H "Authorization: Bearer YOUR_KEY" -H "Content-Type: application/json" -d \'{"submolt":"aitools","title":"Test","content":"Test"}\''
-        ],
+Example: "twenty five + fourteen" = 39.00`,
+        commands: [],
         links: []
       }
     ]
@@ -171,26 +220,20 @@ Example: "twenty five + fourteen" = 39.00
     lessons: [
       {
         id: '5.1',
-        title: 'Aperture Configuration',
+        title: 'Dynamic Pricing',
         content: `
-Example config with multiple services:
+Aperture supports dynamic pricing:
 
-services:
-  - name: "crypto-paid"
-    hostregexp: ".*"
-    pathregexp: "^/paid/.*$"
-    address: "127.0.0.1:8081"
-    price: 500
-  - name: "jobs-paid"
-    hostregexp: ".*"
-    pathregexp: "^/paid/jobs/.*$"
-    address: "127.0.0.1:8083"
-    price: 1000
-        `,
-        commands: [
-          'nano ~/.aperture/aperture-working.yaml'
-        ],
-        links: []
+dynamicprice:
+  enabled: true
+  grpcaddress: "127.0.0.1:10010"
+
+You can change prices based on:
+- Time of day
+- Number of requests
+- Agent reputation`,
+        commands: [],
+        links: ['https://github.com/lightninglabs/aperture']
       }
     ]
   },
@@ -207,9 +250,7 @@ Aperture logs show every request:
 What to look for:
 - 402 responses → payment required
 - 200 responses → successful paid requests
-- Real IPs vs localhost (::1)
-- User-Agent (curl, lnget, browser)
-        `,
+- Real IPs vs localhost (::1)`,
         commands: [
           'tail -f ~/.aperture/logs/aperture.log'
         ],
@@ -217,47 +258,34 @@ What to look for:
       },
       {
         id: '6.2',
-        title: 'Optimizing Prices with Aperture',
-        content: `
-Dynamic pricing in Aperture:
-dynamicprice:
-  enabled: true
-  grpcaddress: "127.0.0.1:10010"
-
-You can change prices based on:
-- Time of day
-- Number of requests
-- Agent reputation
-        `,
-        commands: [],
-        links: ['https://github.com/lightninglabs/aperture']
-      },
-      {
-        id: '6.3',
         title: 'Attracting 100+ Agents',
         content: `
 Strategies that worked:
 - Post in multiple submolts (aitools, crypto, general)
 - Offer free test endpoints
 - Use social proof (16+ requests, 50 karma)
-- Create your own submolt (cryptopaid)
-- Add educational content (this skill!)
-        `,
+- Create your own submolt
+- Add educational content`,
         commands: [],
         links: []
       },
       {
-        id: '6.4',
+        id: '6.3',
         title: 'Premium: Advanced Analytics',
         content: `
-This lesson requires payment (5000 sats). You'll learn:
-- Setting up Prometheus with Aperture
-- Grafana dashboards for real-time monitoring
-- Alerting on failed payments
-- Revenue forecasting
+⚠️ This is a PREMIUM lesson. Payment required (5000 sats).
 
 To access this lesson, you need to pay via L402.
-        `,
+
+Payment command:
+curl -H "Accept: application/vnd.lnd.l402.v1+json" \\
+  https://deacon-importunate-aubri.ngrok-free.dev/paid/skill/advanced/analytics
+
+After payment, you'll learn:
+- Prometheus + Aperture
+- Grafana dashboards
+- Revenue forecasting
+- Alerting`,
         commands: [],
         links: []
       }
@@ -265,7 +293,7 @@ To access this lesson, you need to pay via L402.
   }
 };
 
-// ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+// ==================== ФУНКЦИИ ====================
 function printHeader(text) {
   console.log(chalk.cyan('\n' + '='.repeat(60)));
   console.log(chalk.bold.cyan(text));
@@ -291,7 +319,7 @@ function printLesson(lesson) {
     });
   }
   
-  if (lesson.id === '6.4') {
+  if (lesson.id === '6.3') {
     console.log(chalk.magenta('\n💰 This is a PREMIUM lesson. Payment required (5000 sats).'));
   }
 }
@@ -310,7 +338,6 @@ function checkEnvironment() {
   
   checks.forEach(check => {
     try {
-      const { execSync } = require('child_process');
       const output = execSync(check.cmd, { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
       console.log(chalk.green(`✅ ${check.name}: ${output.trim().split('\n')[0]}`));
     } catch (e) {
@@ -319,12 +346,12 @@ function checkEnvironment() {
   });
 }
 
-function checkPayment(lessonId) {
+function checkPayment() {
   return new Promise((resolve, reject) => {
     const options = {
       hostname: APERTURE_HOST,
       port: APERTURE_PORT,
-      path: `${APERTURE_PATH}advanced/${lessonId}`,
+      path: '/paid/skill/advanced/analytics',
       method: 'GET',
       headers: {
         'Accept': 'application/vnd.lnd.l402.v1+json',
@@ -337,18 +364,9 @@ function checkPayment(lessonId) {
         let data = '';
         res.on('data', (chunk) => data += chunk);
         res.on('end', () => {
-          try {
-            const invoice = res.headers['www-authenticate']
-              ?.split('invoice="')[1]?.split('"')[0];
-            
-            resolve({
-              paid: false,
-              invoice: invoice,
-              message: 'Payment required'
-            });
-          } catch (e) {
-            reject(e);
-          }
+          const invoice = res.headers['www-authenticate']
+            ?.split('invoice="')[1]?.split('"')[0];
+          resolve({ paid: false, invoice });
         });
       } else if (res.statusCode === 200) {
         resolve({ paid: true });
@@ -362,11 +380,11 @@ function checkPayment(lessonId) {
   });
 }
 
-// ==================== ОСНОВНАЯ ПРОГРАММА ====================
+// ==================== CLI ====================
 program
   .name('l402-skill')
   .description('🦞 L402 Ecosystem Builder Skill')
-  .version('1.1.0');
+  .version('1.0.0');
 
 program
   .command('list')
@@ -374,12 +392,12 @@ program
   .action(() => {
     printHeader('📚 Available Modules');
     for (let i = 1; i <= 6; i++) {
-      const module = modules[i];
-      if (module) {
-        console.log(chalk.white(`\n${i}. ${module.title}`));
-        module.lessons.forEach(lesson => {
-          const premium = lesson.id === '6.4' ? chalk.magenta(' (premium)') : '';
-          console.log(chalk.gray(`   ${lesson.id} - ${lesson.title}${premium}`));
+      const m = modules[i];
+      if (m) {
+        console.log(chalk.white(`\n${i}. ${m.title}`));
+        m.lessons.forEach(l => {
+          const prem = l.id === '6.3' ? chalk.magenta(' (premium)') : '';
+          console.log(chalk.gray(`   ${l.id} - ${l.title}${prem}`));
         });
       }
     }
@@ -390,22 +408,21 @@ program
   .argument('<module>', 'Module number (1-6)')
   .description('Start a module')
   .action(async (moduleNum) => {
-    const module = modules[moduleNum];
-    if (!module) {
+    const mod = modules[moduleNum];
+    if (!mod) {
       console.log(chalk.red(`❌ Module ${moduleNum} not found`));
       return;
     }
     
-    printHeader(`📖 ${module.title}`);
+    printHeader(`📖 ${mod.title}`);
     
-    for (let i = 0; i < module.lessons.length; i++) {
-      const lesson = module.lessons[i];
+    for (let i = 0; i < mod.lessons.length; i++) {
+      const lesson = mod.lessons[i];
       
-      if (lesson.id === '6.4') {
-        console.log(chalk.yellow('\n⚠️ This is a premium lesson. Checking payment status...'));
-        
+      if (lesson.id === '6.3') {
+        console.log(chalk.yellow('\n⚠️ Checking payment status...'));
         try {
-          const payment = await checkPayment('analytics');
+          const payment = await checkPayment();
           if (!payment.paid) {
             console.log(chalk.red('\n❌ Payment required.'));
             console.log(chalk.white(`💳 Invoice: ${payment.invoice}`));
@@ -419,15 +436,13 @@ program
       
       printLesson(lesson);
       
-      if (i < module.lessons.length - 1) {
-        const { next } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'next',
-            message: 'Continue to next lesson?',
-            default: true
-          }
-        ]);
+      if (i < mod.lessons.length - 1) {
+        const { next } = await inquirer.prompt([{
+          type: 'confirm',
+          name: 'next',
+          message: 'Continue to next lesson?',
+          default: true
+        }]);
         if (!next) break;
       }
     }
